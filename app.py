@@ -85,23 +85,60 @@ def callback():
 def search_songs():
     """
     Endpoint to search for songs on Spotify based on a query parameter.
+    Returns only the important information for each track.
     """
     # Verify that the user is authenticated by checking for a valid token.
     authenticated, _ = require_authentication()
     if not authenticated:
-        # If not authenticated, return an error instructing the user to log in.
+        # If not authenticated, instruct the user to log in.
         return jsonify({'error': 'User not authenticated. Please log in via /login.'}), 401
 
-    # Retrieve the query parameter 'q' from the request.
+    # Retrieve the query parameter 'q' from the request URL.
     query = request.args.get('q')
     if not query:
-        # If the query parameter is missing, return an error.
+        # Return an error if the query parameter is missing.
         return jsonify({'error': 'Missing query parameter'}), 400
 
     # Use the Spotify API to search for tracks matching the provided query.
     results = sp.search(q=query, type='track')
-    # Return the search results as a JSON response.
-    return jsonify(results)
+
+    # Extract the list of track items from the API response.
+    tracks = results.get("tracks", {}).get("items", [])
+    simplified_tracks = []
+
+    # Loop through each track in the result and extract the most important details.
+    for track in tracks:
+        # Construct a dictionary with key details for each track.
+        track_info = {
+            "id": track.get("id"),  # Unique track identifier.
+            "name": track.get("name"),  # Name of the track.
+            "artists": [  # List of artists for the track.
+                {
+                    "id": artist.get("id"),  # Unique artist identifier.
+                    "name": artist.get("name"),  # Name of the artist.
+                    "href": artist.get("href")  # Link to the artist's Spotify profile.
+                } for artist in track.get("artists", [])
+            ],
+            "album": {  # Album information.
+                "id": track.get("album", {}).get("id"),  # Unique album identifier.
+                "name": track.get("album", {}).get("name"),  # Album name.
+                "release_date": track.get("album", {}).get("release_date"),  # Album release date.
+                "total_tracks": track.get("album", {}).get("total_tracks"),  # Total number of tracks in the album.
+                "images": track.get("album", {}).get("images"),  # List of album cover images.
+                "href": track.get("album", {}).get("href"),  # Link to the album's Spotify page.
+            },
+            "href": track.get("href"),  # API endpoint for this track.
+            "uri": track.get("uri"),  # Spotify URI for this track.
+            "preview_url": track.get("preview_url"),  # URL to a 30-second preview of the track.
+            "popularity": track.get("popularity"),  # Popularity score of the track.
+            "duration_ms": track.get("duration_ms")  # Duration of the track in milliseconds.
+        }
+        # Add the simplified track information to our list.
+        simplified_tracks.append(track_info)
+
+    # Return the list of simplified track details as a JSON response.
+    return jsonify(simplified_tracks)
+
 
 @app.route('/track/<id>', methods=['GET'])
 def get_track_details(id):
@@ -210,6 +247,6 @@ if __name__ == '__main__':
     Entry point for running the Flask development server.
     - The server runs on port 5000.
     - Debug mode is enabled to provide detailed error logs.
-    - The reloader is disabled to avoid conflicts with Spotipy’s OAuth local server.
+    - The reloader is disabled to avoid conflicts with Spotipy's OAuth local server.
     """
     app.run(debug=True, use_reloader=False)
