@@ -1,19 +1,25 @@
-from flask import Flask, request, jsonify, redirect  # Import Flask components, including redirect for HTTP redirection.
-from flask_cors import CORS  # Enable Cross-Origin Resource Sharing.
+from flask import Flask, request, jsonify, redirect  # Import Flask components for building the web app.
+from flask_cors import CORS  # Import CORS to enable cross-origin resource sharing.
 import spotipy  # Import Spotipy to interact with the Spotify API.
-from spotipy.oauth2 import SpotifyOAuth  # Import SpotifyOAuth to manage Spotify authentication.
+from spotipy.oauth2 import SpotifyOAuth  # Import SpotifyOAuth for managing Spotify authentication.
+from dotenv import load_dotenv  # Import load_dotenv to load environment variables from a .env file.
+import os  # Import os to access environment variables.
+
+# Load environment variables from the .env file.
+load_dotenv()  # This reads the .env file and adds the variables to the environment.
+
+# Retrieve the Spotify API credentials from the environment variables.
+SPOTIPY_CLIENT_ID = os.getenv('SPOTIPY_CLIENT_ID')  
+SPOTIPY_CLIENT_SECRET = os.getenv('SPOTIPY_CLIENT_SECRET')
+SPOTIPY_REDIRECT_URI = os.getenv('SPOTIPY_REDIRECT_URI')
 
 # Create the Flask application instance.
 app = Flask(__name__)
-# Enable CORS for the Flask app to accept requests from different origins.
+# Enable CORS for the app to allow requests from different origins.
 CORS(app)
 
-# Spotify API credentials.
-# These must be set to match your registered Spotify app credentials.
-SPOTIPY_CLIENT_ID = 'aa4451e5975e4af9bc5ff9c58d1dd207'
-SPOTIPY_CLIENT_SECRET = 'dbc1caf8d15c4aaa83382fc88e7ddf01'
-# Set the redirect URI to a URL that is registered in your Spotify developer dashboard.
-SPOTIPY_REDIRECT_URI = 'http://127.0.0.1:5000/callback'
+# Now, these credentials are loaded dynamically from your .env file,
+# ensuring that sensitive information isn't hard-coded in your source code.
 
 # Create a SpotifyOAuth instance to handle the OAuth flow.
 # The scope defines the permissions your application is requesting.
