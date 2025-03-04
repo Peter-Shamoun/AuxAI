@@ -1,0 +1,13 @@
+openai-whisper
+transformers
+torch
+faiss-cpu
+spotipy
+requests
+flask
+flask-cors
+pydub
+sounddevice
+scipy
+numpy
+openai
